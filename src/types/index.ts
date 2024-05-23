@@ -1,10 +1,13 @@
-export interface Dependent {
+
+export interface Person {
     id: string;
     name: string;
 }
 
-export interface Employee {
-    id: string;
-    name: string;
-    dependents: Dependent[];
+export interface Dependent extends Person {
+    employeeId?: string
+}
+
+export interface Employee extends Person {
+    dependents?: Dependent[];
 }

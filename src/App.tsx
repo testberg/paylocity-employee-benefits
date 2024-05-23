@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Table, Button } from "antd";
 import EmployeeForm from "./components/EmployeeForm";
 import useEmployeeData from "./hooks/useEmployeeData";
 import {
@@ -39,7 +40,7 @@ const App = () => {
 
     // Calculate the cost per paycheck
     const costPerPaycheck = totalAnnualCost / PAYCHECKS_PER_YEAR;
-    return costPerPaycheck
+    return costPerPaycheck;
   };
 
   const handleEdit = (employee: Employee) => {
@@ -51,58 +52,71 @@ const App = () => {
     saveEmployees(newEmployees);
   };
 
-  const handleFinish = () => setSelectedEmployee(null);
+  const handleFinish = () => {
+    setSelectedEmployee(null);
+  };
 
   const calculateNetPay = (benefitsDeduction: number) => {
     const netPay = GROSS_PAY - benefitsDeduction;
-    return netPay
+    return netPay;
   };
+
+  const columns = [
+    {
+      title: "Employee",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Dependents",
+      dataIndex: "dependents",
+      key: "dependents",
+      render: (dependents: any[]) =>
+        dependents.map((dep) => dep.name).join(", "),
+    },
+    {
+      title: "Cost per Paycheck",
+      dataIndex: "benefits",
+      key: "benefits",
+      render: (benefits: number) => `$${benefits.toFixed(2)}`,
+    },
+    {
+      title: "Net Pay",
+      dataIndex: "benefits",
+      key: "netPay",
+      render: (benefits: number) => `$${calculateNetPay(benefits).toFixed(2)}`,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (text: any, record: Employee) => (
+        <span>
+          <Button type="link" onClick={() => handleEdit(record)}>
+            Edit
+          </Button>
+          <Button type="link" onClick={() => handleDelete(record.id)}>
+            Delete
+          </Button>
+        </span>
+      ),
+    },
+  ];
+
+  const dataSource = employees?.map((employee) => ({
+    ...employee,
+    key: employee.id,
+    benefits: calculateBenefits(employee),
+  }));
 
   return (
     <div className="App">
       <h1>Employee Benefits Cost Calculator</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Employee</th>
-            <th>Dependents</th>
-            <th>Cost per Paycheck</th>
-            <th>Net Pay</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees?.map((employee) => {
-            const benefits = calculateBenefits(employee);
-            return (
-              <tr key={employee.id}>
-                <td>{employee.name}</td>
-                <td>{employee.dependents.map((dep) => dep.name).join(", ")}</td>
-                <td>${benefits.toFixed(2)}</td>
-                <td>${calculateNetPay(benefits).toFixed(2)}</td>
-                <td>
-                  <button onClick={() => handleEdit(employee)}>Edit</button>
-                  <button onClick={() => handleDelete(employee.id)}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      {selectedEmployee && (
-        <div>
-          <h2>Edit Employee</h2>
-          <EmployeeForm employee={selectedEmployee} onFinish={handleFinish} />
-        </div>
-      )}
-      {!selectedEmployee && (
-        <div>
-          <h2>Add Employee</h2>
-          <EmployeeForm onFinish={handleFinish} />
-        </div>
-      )}
+      <Table columns={columns} dataSource={dataSource} />
+      <EmployeeForm
+        open={!!selectedEmployee?.id}
+        employee={selectedEmployee}
+        onFinish={handleFinish}
+      />
     </div>
   );
 };
